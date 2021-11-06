@@ -10,6 +10,7 @@
 .vscode
 Assignment 1.rar
 Assignment 1.pdf
+src/test.java
 
 # AWS User-specific
 .idea/**/aws.xml
