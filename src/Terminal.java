@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,10 +9,10 @@ import java.util.Scanner;
 class Parser {
     String commandName;
     String[] args;
+    Scanner scan = new Scanner(System.in);
 
     public void waitForInput(){
         String input;
-        Scanner scan = new Scanner(System.in);
         input = scan.nextLine();
         parse(input);
     }
@@ -186,7 +185,7 @@ public class Terminal {
     /**
      * "touch [path]" creates a file in selected path
      */
-    public void touch(String[] args) throws IOException{
+    public void touch(String[] args) throws Exception{
         args = args[0].split("\\\\"); //split path into array
         Path parentPath = currentDir;
         
@@ -197,12 +196,13 @@ public class Terminal {
                 0, 
                 args.length-1
             ))
-        );
+        ).normalize();
         
         Path filePath = parentPath.resolve(args[args.length - 1]);
-        
-        Files.createDirectories(parentPath);
-        Files.createFile(filePath);
+        if(exists(filePath))
+            throw new Exception("ERROR: File already exists");
+        Files.createDirectories(parentPath); //create intermedieate directories if needed
+        Files.createFile(filePath); //creates the file
     }
         
 
