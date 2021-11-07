@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -164,6 +165,7 @@ public class Terminal {
     public void cd(String[] args) throws Exception{
         // code can access zip files lol????????
         if(args == null)
+        // if args is null, no args were passed and we return to home dir
             currentDir = homeDir;
         else{
             if(args[0].equals(".."))
@@ -174,7 +176,7 @@ public class Terminal {
                     throw new Exception("ERROR: Directory not found");
                 if(!isDir(tmpPath))
                     throw new Exception("ERROR: "+tmpPath+ " is not a directory");
-                currentDir = currentDir.resolve(tmpPath);
+                currentDir = currentDir.resolve(tmpPath).normalize();
 
             }
         }
@@ -184,8 +186,27 @@ public class Terminal {
     /**
      * "touch [path]" creates a file in selected path
      */
-    public void touch(String[] args){}
+    public void touch(String[] args) throws IOException{
+        args = args[0].split("\\\\"); //split path into array
+        Path parentPath = currentDir;
+        
+        // now separate parent path and the actual file path
+        parentPath = parentPath.resolve(
+            String.join("\\\\", Arrays.copyOfRange(
+                args, 
+                0, 
+                args.length-1
+            ))
+        );
+        
+        Path filePath = parentPath.resolve(args[args.length - 1]);
+        
+        Files.createDirectories(parentPath);
+        Files.createFile(filePath);
+    }
+        
 
+    
     /**
      * "rm [file]" deletes a file in current working dir
      */
@@ -229,6 +250,9 @@ public class Terminal {
                     break;
                 case "rmdir":
                     rmdir(parser.args);
+                
+                case "touch":
+                    touch(parser.args);
                     break;
                 default:
                     break;
