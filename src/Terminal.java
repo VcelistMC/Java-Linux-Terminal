@@ -1,10 +1,14 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+
+import javax.xml.namespace.QName;
 
 class Parser {
     String commandName;
@@ -172,9 +176,9 @@ public class Terminal {
             else{
                 Path tmpPath = currentDir.resolve(String.join(" ", args));
                 if(!exists(tmpPath))
-                    throw new Exception("ERROR: Directory not found");
+                    throw new Exception("Directory not found");
                 if(!isDir(tmpPath))
-                    throw new Exception("ERROR: "+tmpPath+ " is not a directory");
+                    throw new Exception(tmpPath+ " is not a directory");
                 currentDir = currentDir.resolve(tmpPath).normalize();
 
             }
@@ -186,6 +190,9 @@ public class Terminal {
      * "touch [path]" creates a file in selected path
      */
     public void touch(String[] args) throws Exception{
+        if(args == null || args.length != 1)
+            throw new Exception("Invalid arguments");
+
         args = args[0].split("\\\\"); //split path into array
         Path parentPath = currentDir;
         
@@ -200,7 +207,7 @@ public class Terminal {
         
         Path filePath = parentPath.resolve(args[args.length - 1]);
         if(exists(filePath))
-            throw new Exception("ERROR: File already exists");
+            throw new Exception("File already exists");
         Files.createDirectories(parentPath); //create intermedieate directories if needed
         Files.createFile(filePath); //creates the file
     }
@@ -209,20 +216,80 @@ public class Terminal {
     
     /**
      * "rm [file]" deletes a file in current working dir
+     * @throws Exception
      */
-    public void rm(String[] args){}
+    public void rm(String[] args) throws Exception{
+        if(args == null || args.length != 1)
+            throw new Exception("Invalid arguments");
+
+        File deletedFile = currentDir.resolve(args[0]).toFile();
+        if(!exists(deletedFile))
+            throw new Exception("no such file");
+        boolean isDeleted = deletedFile.delete();
+        if(!isDeleted)
+            throw new Exception("Failed to delete file");
+    }
 
     /**
      * "cat [file]" prints the file contents
      * <p>
      * "cat [file1] [file2]" prints file1 and file2 contents
      */
-    public String cat(String[] args){return ""; }
+    public String cat(String[] args) throws Exception{ 
+        if(args == null || args.length > 2)
+            throw new Exception("Invalid arguments");
+
+        String fileContents = "";
+        Scanner fileReader;
+
+        for(String arg : args){
+            File toBeRead = currentDir.resolve(arg).toFile();
+            
+            if(!exists(toBeRead))
+                throw new Exception(arg + " No such file");
+            if(!isFile(toBeRead))
+                throw new Exception(arg + " is not a file");
+
+            fileReader = new Scanner(toBeRead);
+            
+            while(fileReader.hasNextLine()){
+                fileContents += (fileReader.nextLine() + "\n");
+            }
+        }
+    
+        return fileContents; 
+    }
 
     /**
      * "cp [file1] [file2]" copies contents of file 1 into file 2
      */
-    public void cp(String[] args){}
+    public void cp(String[] args) throws Exception{
+        if(args == null || args.length != 2)
+            throw new Exception("invalid arguments");
+
+        File file1 = currentDir.resolve(args[0]).toFile();
+        File file2 = currentDir.resolve(args[1]).toFile();
+        
+        if(!exists(file1) || !exists(file2))
+            throw new Exception("no such file");
+        if(!isFile(file1) || !isFile(file2))
+            throw new Exception("isn't a file");
+
+        Scanner fileReader = new Scanner(file1);
+
+        String file1Contents = "";
+        
+        while(fileReader.hasNext())
+            file1Contents += (fileReader.nextLine() + "\n");
+        
+        Files.write(
+            file2.toPath(), 
+            file1Contents.getBytes(), 
+            StandardOpenOption.APPEND
+        );
+
+        fileReader.close();
+    }
 
     /**
      * "cp -r [dir1] [dir2]" copies contents of dir1 into dir2
@@ -254,11 +321,23 @@ public class Terminal {
                 case "touch":
                     touch(parser.args);
                     break;
+                
+                case "rm":
+                    rm(parser.args);
+                    break;
+
+                case "cat":
+                    System.out.println(cat(parser.args));
+                    break;
+                
+                case "cp":
+                    cp(parser.args);
+                    break;
                 default:
                     break;
             }
         }catch(Exception e){
-            System.out.println(e.getMessage());
+            System.out.println("ERROR: " + e.getMessage());
         }
     }
 
@@ -274,12 +353,24 @@ public class Terminal {
         return !Files.isDirectory(path);
     }
 
+    private boolean isFile(File path){
+        return path.isFile();
+    }
+
     private boolean isDir(Path path){
         return Files.isDirectory(path);
     }
 
+    private boolean isDir(File path){
+        return path.isDirectory();
+    }
+
     private boolean exists(Path path){
         return Files.exists(path);
+    }
+
+    private boolean exists(File path){
+        return path.exists();
     }
 
     public static void main(String[] args) {
