@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -7,8 +6,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
-
-import javax.xml.namespace.QName;
 
 class Parser {
     String commandName;
@@ -34,6 +31,17 @@ class Parser {
                 args = Arrays.copyOfRange(cmd, 1, cmd.length);
             }
         }
+        /*for (int i = 0; i < args.length; i++){
+            boolean found = false;
+            for (int j = 0; j < args[i].length(); j++){
+                if (args[i].indexOf(j) == '"'){
+                    if (!found)
+                        found = true;
+                    else
+                        found = false;
+                }
+            }
+        }*/
         return true;
     }
 
@@ -78,10 +86,10 @@ public class Terminal {
      */
     public String ls(String[] args){
         ArrayList<String> content = new ArrayList<>();
-        File f = new File(String.valueOf(currentDir));
-        ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
-        for (int i = 0; i < files.size(); i++)
-            content.add(files.get(i).getName());
+        File file = new File(String.valueOf(currentDir));
+        ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
+        for (int i = 0; i < fileList.size(); i++)
+            content.add(fileList.get(i).getName());
         return String.join(" ", content);
     }
 
@@ -90,10 +98,10 @@ public class Terminal {
      */
     public String lsr(String[] args){
         ArrayList<String> content = new ArrayList<>();
-        File f = new File(String.valueOf(currentDir));
-        ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
-        for (int i = files.size() - 1; i >= 0; i--)
-            content.add(files.get(i).getName());
+        File file = new File(String.valueOf(currentDir));
+        ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
+        for (int i = fileList.size() - 1; i >= 0; i--)
+            content.add(fileList.get(i).getName());
         return String.join(" ", content);
     }
 
@@ -103,22 +111,25 @@ public class Terminal {
      * "mdkir [path]" creates a folder in selected path
      */
 
-    // Path must be without spaces
     public void mkdir(String[] args){
         for (int i = 0; i < args.length; i++){
-            if (!args[i].contains("\\")) {
-                File file = new File(currentDir.toString() + "\\" + args[i]);
-                if(file.mkdir())
-                    System.out.println("Done");
-                else
-                    System.out.println("None");
+            if (args[i].contains(":")){
+                File file = new File("");
+                String[] folders = args[i].split("\\\\");
+                for (int j = 0; j < folders.length; j++) {
+                    file = new File(file.toString() + "\\" + folders[j]);
+                    if (!file.exists())
+                        file.mkdir();
+                }
             }
             else {
-                File file = new File(args[i]);
-                if(file.mkdir())
-                    System.out.println("Done");
-                else
-                    System.out.println("None");
+                String[] folders = args[i].split("\\\\");
+                File file = new File(currentDir.toString());
+                for (int j = 0; j < folders.length; j++) {
+                    file = new File(file.toString() + "\\" + folders[j]);
+                    if (!file.exists())
+                        file.mkdir();
+                }
             }
         }
     }
@@ -130,31 +141,35 @@ public class Terminal {
      * <p>
      * "rmdir [path]" removes dir at selected path iff the dir is empty
      */
-    public void rmdir(String[] args){
+    public void rmdir(String[] args) throws Exception{
+        File file = new File(currentDir.toString());
         if (args[0].equals("*")) {
-            File f = new File(String.valueOf(currentDir));
-            ArrayList<File> files = new ArrayList<File>(Arrays.asList(f.listFiles()));
-            for (int i = 0; i < files.size(); i++) {
-                f = files.get(i);
-                if(f.delete())
-                    System.out.println("Done");
-                else
-                    System.out.println("None");
+            ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
+            for (int i = 0; i < fileList.size(); i++) {
+                file = fileList.get(i);
+                if (file.isDirectory())
+                    file.delete();
             }
         }
-        else if (!args[0].contains("\\")){
-            File file = new File(currentDir.toString() + "\\" + args[0]);
-            if(file.delete())
-                System.out.println("Done");
-            else
-                System.out.println("None");
+        else if (args[0].contains(":")){
+            file = new File(args[0]);
+            if (!file.exists())
+                throw new Exception("ERROR: Directory not found");
+            if (!(file.listFiles().length == 0))
+                throw new Exception("ERROR: Directory is not empty");
+            file.delete();
         }
         else {
-            File file = new File(args[0]);
-            if(file.delete())
-                System.out.println("Done");
-            else
-                System.out.println("None");
+            String[] folders = args[0].split("\\\\");
+            file = new File(currentDir.toString());
+            for (int j = 0; j < folders.length; j++) {
+                file = new File(file.toString() + "\\" + folders[j]);
+                if (!file.exists())
+                    throw new Exception("ERROR: Directory not found");
+            }
+            if (!(file.listFiles().length == 0))
+                throw new Exception("ERROR: Directory is not empty");
+            file.delete();
         }
     }
 
@@ -317,7 +332,7 @@ public class Terminal {
                     break;
                 case "rmdir":
                     rmdir(parser.args);
-                
+                    break;
                 case "touch":
                     touch(parser.args);
                     break;
