@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,7 +69,8 @@ public class Terminal {
     /**
      * Takes 1 arguments and prints it
      */
-    public String echo(String[] args){
+    public String echo(String[] args) throws Exception {
+        isRedirected(args);
         String str = "";
         for (int i = 0; i < args.length; i++)
             str += args[i] + " ";
@@ -78,13 +80,23 @@ public class Terminal {
     /**
      * prints current working directory
      */
-    public String pwd(){ return currentDir.toString(); }
+    public String pwd(String[] args){
+        if(args != null) 
+            isRedirected(args); 
+        return currentDir.toString(); 
+    }
+
+    public String pwd(){
+        return pwd(null);
+    }
 
 
     /**
      * "ls" lists contents of current working dir
      */
-    public String ls(String[] args){
+    public String ls(String[] args) throws Exception{
+        isRedirected(args);
+
         ArrayList<String> content = new ArrayList<>();
         File file = new File(String.valueOf(currentDir));
         ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
@@ -96,7 +108,8 @@ public class Terminal {
     /**
      * "ls -r" lists contents of current working dir in reverse order
      */
-    public String lsr(String[] args){
+    public String lsr(String[] args)throws Exception{
+        isRedirected(args);
         ArrayList<String> content = new ArrayList<>();
         File file = new File(String.valueOf(currentDir));
         ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
@@ -251,8 +264,10 @@ public class Terminal {
      * "cat [file1] [file2]" prints file1 and file2 contents
      */
     public String cat(String[] args) throws Exception{ 
-        if(args == null || args.length > 2)
+        if(args == null)
             throw new Exception("Invalid arguments");
+        
+        isRedirected(args);
 
         String fileContents = "";
         Scanner fileReader;
@@ -306,10 +321,44 @@ public class Terminal {
         fileReader.close();
     }
 
-    /**
-     * "cp -r [dir1] [dir2]" copies contents of dir1 into dir2
-     */
-    public void cpr(String[] args){}
+
+    public void redirect(String output, String path) throws Exception{
+        File outputFile = currentDir.resolve(path).toFile();
+        FileWriter fileWriter = new FileWriter(outputFile);
+        fileWriter.write(output);
+        fileWriter.close();
+    }
+
+    private void isRedirected(String[] args){
+        try{
+            for(int i = 0; i < args.length; i++){
+                if(args[i].equals(">")){
+                    String outString = "";
+                    switch (parser.commandName) {
+                        case "echo":
+                            outString = echo(Arrays.copyOfRange(args, 0, i));
+                            break;
+                        
+                        case "ls":
+                            outString = ls(Arrays.copyOfRange(args, 0, i));
+                            break;
+
+                        case "ls -r":
+                            outString = lsr(Arrays.copyOfRange(args, 0, i));
+                            break;
+
+                        case "cat":
+                            outString = cat(Arrays.copyOfRange(args, 0, i));
+                            break;
+                        case "pwd":
+                            outString = pwd();
+                            break;
+                    }
+                    redirect(outString, args[args.length-1]);
+                }
+            }
+        }catch(Exception e){System.out.println(e.getMessage());}
+    }
 
     public void chooseCommandAction(){
         parser.waitForInput();
@@ -318,21 +367,31 @@ public class Terminal {
                 case "cd":
                     cd(parser.args);
                     break;
+
+                case "pwd":
+                    pwd(parser.args);
+                    break; 
+
                 case "echo":
                     System.out.println(echo(parser.args));
                     break;
+
                 case "ls":
                     System.out.println(ls(parser.args));
                     break;
+
                 case "ls -r":
                     System.out.println(lsr(parser.args));
                     break;
+
                 case "mkdir":
                     mkdir(parser.args);
                     break;
+
                 case "rmdir":
                     rmdir(parser.args);
                     break;
+
                 case "touch":
                     touch(parser.args);
                     break;
@@ -348,6 +407,7 @@ public class Terminal {
                 case "cp":
                     cp(parser.args);
                     break;
+
                 default:
                     break;
             }
