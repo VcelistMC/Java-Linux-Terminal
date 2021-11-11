@@ -169,6 +169,8 @@ public class Terminal {
      * "rmdir [path]" removes dir at selected path iff the dir is empty
      */
     public void rmdir(String[] args) throws Exception{
+        if(args == null)
+            throw new Exception("Invalid arguments");
         // File file = new File(currentDir.toString());
         // if (args[0].equals("*")) {
         //     ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
