@@ -60,11 +60,11 @@ class Parser {
     }
 }
 
-public class Terminal {
+public class Terminal_S1_20190140_20190314 {
     Parser parser;
     Path currentDir, homeDir;
 
-    Terminal(){
+    Terminal_S1_20190140_20190314(){
         parser = new Parser();
         //gets the dir the program was launched in
         currentDir = Paths.get(System.getProperty("user.dir"));
@@ -75,6 +75,8 @@ public class Terminal {
      * Takes 1 arguments and prints it
      */
     public String echo(String[] args) throws Exception {
+        if(args == null)
+            throw new Exception("Invalid arguments");
         isRedirected(args);
         String str = "";
         for (int i = 0; i < args.length; i++)
@@ -85,13 +87,13 @@ public class Terminal {
     /**
      * prints current working directory
      */
-    public String pwd(String[] args){
+    public String pwd(String[] args) throws Exception{
         if(args != null) 
             isRedirected(args); 
         return currentDir.toString(); 
     }
 
-    public String pwd(){
+    public String pwd() throws Exception{
         return pwd(null);
     }
 
@@ -131,6 +133,8 @@ public class Terminal {
      */
 
     public void mkdir(String[] args) throws Exception{
+        if(args == null)
+            throw new Exception("Invalid arguments");
         for (int i = 0; i < args.length; i++){
             if (args[i].contains(":")){
                 File file = new File("");
@@ -171,6 +175,7 @@ public class Terminal {
     public void rmdir(String[] args) throws Exception{
         if(args == null)
             throw new Exception("Invalid arguments");
+
         File file = new File(currentDir.toString());
         if (args[0].equals("*")) {
             ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
@@ -183,9 +188,9 @@ public class Terminal {
         else if (args[0].contains(":")){
             file = new File(args[0]);
             if (!file.exists())
-                throw new Exception("ERROR: Directory not found");
+                throw new Exception("Directory not found");
             if (!(file.listFiles().length == 0))
-                throw new Exception("ERROR: Directory is not empty");
+                throw new Exception("Directory is not empty");
             file.delete();
         }
         else {
@@ -194,10 +199,10 @@ public class Terminal {
             for (int j = 0; j < folders.length; j++) {
                 file = new File(file.toString() + "\\" + folders[j]);
                 if (!file.exists())
-                    throw new Exception("ERROR: Directory not found");
+                    throw new Exception("Directory not found");
             }
             if (!(file.listFiles().length == 0))
-                throw new Exception("ERROR: Directory is not empty");
+                throw new Exception("Directory is not empty");
             file.delete();
         }
 //         if(args[0].equals("*")){
@@ -368,7 +373,9 @@ public class Terminal {
         fileWriter.close();
     }
 
-    private void isRedirected(String[] args){
+    private void isRedirected(String[] args) throws Exception{
+        if(args == null)
+            return;
         try{
             for(int i = 0; i < args.length; i++){
                 if(args[i].equals(">")){
@@ -407,7 +414,7 @@ public class Terminal {
                     break;
 
                 case "pwd":
-                    pwd(parser.args);
+                    System.out.println(pwd(parser.args));
                     break; 
 
                 case "echo":
@@ -454,7 +461,7 @@ public class Terminal {
         }
     }
 
-    public void run(){
+    public void run()throws Exception{
         boolean userExited = false;
         while(!userExited){
             parser.clear();
@@ -490,7 +497,12 @@ public class Terminal {
     }
 
     public static void main(String[] args) {
-        Terminal term = new Terminal();
-        term.run();
+        Terminal_S1_20190140_20190314 term = new Terminal_S1_20190140_20190314();
+        try {
+            term.run();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
