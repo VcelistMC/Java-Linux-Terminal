@@ -131,34 +131,34 @@ public class Terminal {
      */
 
     public void mkdir(String[] args) throws Exception{
-        // for (int i = 0; i < args.length; i++){
-        //     if (args[i].contains(":")){
-        //         File file = new File("");
-        //         String[] folders = args[i].split("\\\\");
-        //         for (int j = 0; j < folders.length; j++) {
-        //             file = new File(file.toString() + "\\" + folders[j]);
-        //             if (!file.exists())
-        //                 file.mkdir();
-        //         }
-        //     }
-        //     else {
-        //         String[] folders = args[i].split("\\\\");
-        //         File file = new File(currentDir.toString());
-        //         for (int j = 0; j < folders.length; j++) {
-        //             file = new File(file.toString() + "\\" + folders[j]);
-        //             if (!file.exists())
-        //                 file.mkdir();
-        //         }
-        //     }
-        // }
-        if(args == null)
-            throw new Exception("Invalid arguments");
-        for(String arg : args){
-            Path dirPath = currentDir.resolve(arg);
-            if(exists(dirPath))
-                throw new Exception("Folder already exists");
-            Files.createDirectories(dirPath);
+        for (int i = 0; i < args.length; i++){
+            if (args[i].contains(":")){
+                File file = new File("");
+                String[] folders = args[i].split("\\\\");
+                for (int j = 0; j < folders.length; j++) {
+                    file = new File(file.toString() + "\\" + folders[j]);
+                    if (!file.exists())
+                        file.mkdir();
+                }
+            }
+            else {
+                String[] folders = args[i].split("\\\\");
+                File file = new File(currentDir.toString());
+                for (int j = 0; j < folders.length; j++) {
+                    file = new File(file.toString() + "\\" + folders[j]);
+                    if (!file.exists())
+                        file.mkdir();
+                }
+            }
         }
+//         if(args == null)
+//             throw new Exception("Invalid arguments");
+//         for(String arg : args){
+//             Path dirPath = currentDir.resolve(arg);
+//             if(exists(dirPath))
+//                 throw new Exception("Folder already exists");
+//             Files.createDirectories(dirPath);
+//         }
     }
 
     /**
@@ -171,56 +171,56 @@ public class Terminal {
     public void rmdir(String[] args) throws Exception{
         if(args == null)
             throw new Exception("Invalid arguments");
-        // File file = new File(currentDir.toString());
-        // if (args[0].equals("*")) {
-        //     ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
-        //     for (int i = 0; i < fileList.size(); i++) {
-        //         file = fileList.get(i);
-        //         if (file.isDirectory())
-        //             file.delete();
-        //     }
-        // }
-        // else if (args[0].contains(":")){
-        //     file = new File(args[0]);
-        //     if (!file.exists())
-        //         throw new Exception("ERROR: Directory not found");
-        //     if (!(file.listFiles().length == 0))
-        //         throw new Exception("ERROR: Directory is not empty");
-        //     file.delete();
-        // }
-        // else {
-        //     String[] folders = args[0].split("\\\\");
-        //     file = new File(currentDir.toString());
-        //     for (int j = 0; j < folders.length; j++) {
-        //         file = new File(file.toString() + "\\" + folders[j]);
-        //         if (!file.exists())
-        //             throw new Exception("ERROR: Directory not found");
-        //     }
-        //     if (!(file.listFiles().length == 0))
-        //         throw new Exception("ERROR: Directory is not empty");
-        //     file.delete();
-        // }
-        if(args[0].equals("*")){
-            File[] folderList = currentDir.toFile().listFiles();
-            for(File folder: folderList){
-                if(isDir(folder))
-                    folder.delete();
+        File file = new File(currentDir.toString());
+        if (args[0].equals("*")) {
+            ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(file.listFiles()));
+            for (int i = 0; i < fileList.size(); i++) {
+                file = fileList.get(i);
+                if (file.isDirectory())
+                    file.delete();
             }
         }
-
-        else{
-            String dirPath = String.join(" ", args);
-            File folder = currentDir.resolve(dirPath).toFile();
-
-            if(!exists(folder))
-                throw new Exception("folder not found");
-            if(!isDir(folder))
-                throw new Exception("is not a folder");
-            if(folder.list().length != 0)
-                throw new Exception("folder is not empty");
-
-            folder.delete();
+        else if (args[0].contains(":")){
+            file = new File(args[0]);
+            if (!file.exists())
+                throw new Exception("ERROR: Directory not found");
+            if (!(file.listFiles().length == 0))
+                throw new Exception("ERROR: Directory is not empty");
+            file.delete();
         }
+        else {
+            String[] folders = args[0].split("\\\\");
+            file = new File(currentDir.toString());
+            for (int j = 0; j < folders.length; j++) {
+                file = new File(file.toString() + "\\" + folders[j]);
+                if (!file.exists())
+                    throw new Exception("ERROR: Directory not found");
+            }
+            if (!(file.listFiles().length == 0))
+                throw new Exception("ERROR: Directory is not empty");
+            file.delete();
+        }
+//         if(args[0].equals("*")){
+//             File[] folderList = currentDir.toFile().listFiles();
+//             for(File folder: folderList){
+//                 if(isDir(folder))
+//                     folder.delete();
+//             }
+//         }
+
+//         else{
+//             String dirPath = String.join(" ", args);
+//             File folder = currentDir.resolve(dirPath).toFile();
+
+//             if(!exists(folder))
+//                 throw new Exception("folder not found");
+//             if(!isDir(folder))
+//                 throw new Exception("is not a folder");
+//             if(folder.list().length != 0)
+//                 throw new Exception("folder is not empty");
+
+//             folder.delete();
+//         }
     }
 
     /**
